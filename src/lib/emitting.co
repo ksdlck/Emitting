@@ -8,25 +8,35 @@ class ex.Emitting
     for c of ev
       switch typeof c
         case \string
-          spec.@s[c] = (next = {})
+          next = spec.@s.@[c]
         case \number
-          spec.@@n.push [c, (next = {})]
+          next = spec.@n.@[c]
       spec = next
-    spec.p = proc
+    spec.@@p.push proc
     @
   off: (ev, proc)->
     ev = [ev] if typeof ev is \string
     #console.log "off:\n  ev: #ev\n  proc: #proc"
     # TODO
     @
-  _emit: !(ev, idx, spec, args)->
-    #console.log "_emit #{util.inspect @@, false, null}"
+  _emit: !(ev, idx, spec, args) ->
     if ev.length - idx is 0
-      spec.p ...args if spec.p
-    else
-      spec.s and (next = spec.s[ev[idx]]) and @_emit ev, idx + 1, next, args
-      spec.n and for [num, next] of spec.n
-        @_emit ev, (if num is 0 then ev.length else idx + num), next, args if num + idx <= ev.length
+      spec.p and for proc of spec.p
+        proc ...args
+    spec.s and (next = spec.s[ev[idx]]) and @_emit ev, idx + 1, next, args
+    spec.n and for num in spec.n
+      next = spec.n[num]
+      num = parseInt num
+      if num is 0
+        if idx + 1 is ev.length
+          @_emit ev, ev.length, next, args
+        else
+          for i from idx til ev.length
+            @_emit ev, i, next, args
+      else if idx + num <= ev.length
+        @_emit ev, idx + num, next, args
+      #else
+      #  break
   emit: (ev, ...args)->
     ev = [ev] if typeof ev is \string
     @_emit ev, 0, @.@evs, args
@@ -46,6 +56,7 @@ class ex.Emitting
 ####################################### TEST ##########################################
 
 util = require \util
+
 e = new Emitting
 
 argemit = !(arg)->
@@ -54,12 +65,17 @@ argemit = !(arg)->
 argon = !(arg, descr)->
   e.on arg, !(ev)-> console.log "event: #{descr or util.inspect arg, false, null}: #{util.inspect ev, false, null}"
 
-argon [0] "event: any event"
-argon [1] "event: top-level event"
-argon [\test 2 0] "event: any test-namespace event with at least two sub-components"
-argon [\test] "event: test"
-argon [\test \a \b] "event: any test.a.b event"
-argon [\test 2 \c] "event: any test.2.c event"
+argon [0] "any event"
+argon [1] "top-level event"
+argon [\test 2 0] "any test-namespace event with at least two sub-components"
+argon [\test] "test"
+argon [\test \a \b] "any test.a.b event"
+argon [\test 2 \c] "any test.2.c event"
+argon [0 \test]
+argon [\test 0 \b]
+argon [0 \a \b \c]
+argon [\a 0 \b \c]
+console.log util.inspect e, false, null
 
 console.log "--------------------------------------------------------------"
 argemit [\rofl]
@@ -71,4 +87,6 @@ console.log "--------------------------------------------------------------"
 argemit [\test \a \b]
 console.log "--------------------------------------------------------------"
 argemit [\test \a \b \c]
+console.log "--------------------------------------------------------------"
+argemit [\a \b \a \b \c]
 console.log "--------------------------------------------------------------"
