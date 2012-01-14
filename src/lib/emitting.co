@@ -3,7 +3,6 @@ ex = exports? and exports or window
 class ex.Emitting
   on: (ev, proc)->
     ev = [ev] if typeof ev is \string
-    #console.log "on:\n  ev: #{JSON.stringify ev}\n  proc: #proc"
     spec = @.@evs
     for c of ev
       switch typeof c
@@ -16,10 +15,23 @@ class ex.Emitting
     @
   off: (ev, proc)->
     ev = [ev] if typeof ev is \string
-    #console.log "off:\n  ev: #ev\n  proc: #proc"
-    # TODO
+    spec = @.@evs
+    for c of ev
+      ctype = typeof c is \string and \s or \n
+      dobj? or [dobj, dprop] = [spec, ctype]
+      spec = (ref = spec[ctype]) and ref[c]
+      if not spec
+        dobj = null
+        break
+      dobj = null if (p for p in ref).length is not 1
+      dobj? or [dobj, dprop] = [ref, c]
+    spec.p and for i from 0 til spec.p.length
+      if spec.p[i] is proc
+        spec.p.splice i--, 1
+    dobj = null if spec.p.length is not 0
+    delete dobj[dprop] if dobj
     @
-  _emit: !(ev, idx, spec, args) ->
+  _emit: !(ev, idx, spec, args)->
     if ev.length - idx is 0
       spec.p and for proc of spec.p
         proc ...args
@@ -32,20 +44,22 @@ class ex.Emitting
           @_emit ev, i, next, args
       else if idx + num <= ev.length
         @_emit ev, idx + num, next, args
-      #else
-      #  break
+      else
+        break
   emit: (ev, ...args)->
+    # TODO roll the recursive emit process into a queue
+    # TODO add a few short circuits to the variable matcher
     ev = [ev] if typeof ev is \string
     @_emit ev, 0, @.@evs, args
     @
-  many: (ev, times, proc) ->
-    _proc = ! ~>
+  many: (ev, times, proc)->
+    _proc = !~>
       proc ...
       if --times is 0
-        @off ev _proc
-    @on ev _proc
-  one: !(ev, proc) ->
-    _proc = ! ~>
+        @off ev, _proc
+    @on ev, _proc
+  one: !(ev, proc)->
+    _proc = !~>
       proc ...
-      @off ev _proc
-    @on ev _proc
+      @off ev, _proc
+    @on ev, _proc

@@ -1,0 +1,9 @@
+{Emitting} = require \../lib/emitting
+
+e = new Emitting
+
+e.on \test (l1 = !-> console.log "i'm the first test listener, you should only see me once")
+e.on \test !-> console.log "i'm the second test listener, you should see me twice"
+e.emit \test
+e.off \test l1
+e.emit \test

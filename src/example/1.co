@@ -1,0 +1,8 @@
+{Emitting} = require \../lib/emitting
+
+e = new Emitting
+
+e.on \test console.log
+e.emit \test "it's a test!"
+e.off \test console.log
+e.emit \test "here's a second test."

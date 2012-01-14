@@ -1,0 +1,8 @@
+{Emitting} = require \../lib/emitting
+
+e = new Emitting
+
+e.many \test 2 !-> console.log "you should only see me twice"
+e.emit \test
+e.emit \test
+e.emit \test
