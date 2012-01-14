@@ -1,0 +1,55 @@
+ex = typeof exports is \undefined and window or {}
+
+class ex.Emitting
+  _divargs: (...args)->
+    if args[0] instanceof Array and args[0].length is 1 and typeof args[0][0] is \number
+      console.log "EM: first choice"
+      args[[0] 1]
+    else if args[0] instanceof Array and args[0].length > 0
+      console.log "EM: second choice"
+      args[0 1]
+    else
+      console.log "EM: third choice"
+      ev = do
+        arg = args.shift ()
+      while typeof arg is not \function
+      proc = args.shift ()
+      [ev, proc]
+  on: ->
+    [ev, proc] = @_divargs ...
+    console.log "on:\n  ev: #{JSON.stringify ev}\n  proc: #proc"
+    @
+  off: ->
+    [ev, proc] = @_divargs ...
+    console.log "off:\n  ev: #ev\n  proc: #proc"
+    @
+
+class ex.ExtendedEmitting extends Emitting
+  many: !(ev, times, proc) ->
+    _proc = ! ~>
+      proc ...
+      if --times is 0
+        @off _proc
+    @on ev _proc
+  once: !(ev, proc) ->
+    _proc = ! ~>
+      proc ...
+      @off _proc
+    @on ev _proc
+
+e = new Emitting
+
+# non namespace-spanning wildcard
+e.on [[1]] !-> console.log "ANY TOP-LEVEL EVENT"
+e.on [1] !-> console.log "ANY TOP-LEVEL EVENT"
+
+# namespace-spanning wildcard
+e.on [[]] !-> console.log "ANY EVENT"
+e.on [] !-> console.log "ANY EVENT"
+
+# pattern match
+e.on [[] \test] !-> console.log "TEST EVENT IN ANY NAMESPACE"
+e.on [] \test !-> console.log "TEST EVENT IN ANY NAMESPACE"
+
+e.on [\test []] !-> console.log "ANY EVENT IN THE TEST TOP-LEVEL NAMESPACE"
+e.on \test [] !-> console.log "ANY EVENT IN THE TEST TOP-LEVEL NAMESPACE"

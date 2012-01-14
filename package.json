@@ -1,0 +1,16 @@
+{
+  "author": "Karel Sedláček <k@ksdlck.com> (http://ksdlck.com)",
+  "name": "Emitting",
+  "description": "Another event emitter for Javascript and friends",
+  "version": "0.0.1",
+  "homepage": "https://github.com/ksdlck/Emitting",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ksdlck/Emitting.git"
+  },
+  "engines": {
+    "node": "~0.6.7"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
