@@ -10,7 +10,9 @@ This one aims to support fewer features, and have a cleaner API.
 Events take the form of arrays with string and numerical specifiers.
 For a string, the element must be matched exactly.
 For a number, that number of components must be present, unless the number is 0, in which case any number of components may be matched.
-Multiple variable matches, e.g. `e.on [\a 0 \b 0 \c]` should be used with caution, as solving this match requires backtracking.
+Preceding variable matched, e.g. `e.on [0 \a]` should be used with caution, as they require a lot of expansion in the match path.
+Multiple variable matches, e.g. `e.on [\a 0 \b 0 \c]` should also be used with roughly O(n^numvar) more caution.
+None of these should really be used with that much caution, unless you are going wild with your 1000 nested namespaces.
 
     {Emitting} = require \emitting
 

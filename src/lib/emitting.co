@@ -28,11 +28,8 @@ class ex.Emitting
       next = spec.n[num]
       num = parseInt num
       if num is 0
-        if idx + 1 is ev.length
-          @_emit ev, ev.length, next, args
-        else
-          for i from idx til ev.length
-            @_emit ev, i, next, args
+        for i from idx to ev.length
+          @_emit ev, i, next, args
       else if idx + num <= ev.length
         @_emit ev, idx + num, next, args
       #else
@@ -74,7 +71,7 @@ argon [\test 2 \c] "any test.2.c event"
 argon [0 \test]
 argon [\test 0 \b]
 argon [0 \a \b \c]
-argon [\a 0 \b \c]
+argon [0 \a 0 \b \c]
 console.log util.inspect e, false, null
 
 console.log "--------------------------------------------------------------"
