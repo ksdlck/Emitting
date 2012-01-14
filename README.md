@@ -1,5 +1,5 @@
-emit
-====
+Emitting
+========
 
 SYNOPSIS
 --------
