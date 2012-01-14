@@ -1,56 +1,74 @@
 ex = exports? and exports or window
 
 class ex.Emitting
-  _divargs: (...args)->
-    if args.length is 2
-      if args[0] instanceof Array and args[0].length is 0 or typeof args[0][0] is \number
-        args[[0] 1]
-      else
-        args[0 1]
-    else
-      [(args.slice 0 -1), args[* - 1]]
-  on: ->
-    [ev, proc] = @_divargs ...
+  on: (ev, proc)->
+    ev = [ev] if typeof ev is \string
+    #console.log "on:\n  ev: #{JSON.stringify ev}\n  proc: #proc"
+    spec = @.@evs
     for c of ev
       switch typeof c
-        when \string
-        when \number
-        when \object
-      @.@@evs.
-    console.log "on:\n  ev: #{JSON.stringify ev}\n  proc: #proc"
+        case \string
+          spec.@s[c] = (next = {})
+        case \number
+          spec.@@n.push [c, (next = {})]
+      spec = next
+    spec.p = proc
     @
-  off: ->
-    [ev, proc] = @_divargs ...
-    console.log "off:\n  ev: #ev\n  proc: #proc"
+  off: (ev, proc)->
+    ev = [ev] if typeof ev is \string
+    #console.log "off:\n  ev: #ev\n  proc: #proc"
+    # TODO
     @
-  many: !(ev, times, proc) ->
+  _emit: !(ev, idx, spec, args)->
+    #console.log "_emit #{util.inspect @@, false, null}"
+    if ev.length - idx is 0
+      spec.p ...args if spec.p
+    else
+      spec.s and (next = spec.s[ev[idx]]) and @_emit ev, idx + 1, next, args
+      spec.n and for [num, next] of spec.n
+        @_emit ev, (if num is 0 then ev.length else idx + num), next, args if num + idx <= ev.length
+  emit: (ev, ...args)->
+    ev = [ev] if typeof ev is \string
+    @_emit ev, 0, @.@evs, args
+    @
+  many: (ev, times, proc) ->
     _proc = ! ~>
       proc ...
       if --times is 0
-        @off _proc
+        @off ev _proc
     @on ev _proc
-  once: !(ev, proc) ->
+  one: !(ev, proc) ->
     _proc = ! ~>
       proc ...
-      @off _proc
+      @off ev _proc
     @on ev _proc
 
+####################################### TEST ##########################################
+
+util = require \util
 e = new Emitting
 
-e.on 0 !-> console.log "ANY TOP-LEVEL EVENT"
-e.on \test 2 0 console.log "ANY TEST-NAMESPACE EVENT WITH AT LEAST TWO SUB-COMPONENTS"
+argemit = !(arg)->
+  e.emit arg, arg
 
-# non namespace-spanning wildcard
-e.on [[1]] !-> console.log "ANY TOP-LEVEL EVENT"
-e.on [1] !-> console.log "ANY TOP-LEVEL EVENT"
+argon = !(arg, descr)->
+  e.on arg, !(ev)-> console.log "event: #{descr or util.inspect arg, false, null}: #{util.inspect ev, false, null}"
 
-# namespace-spanning wildcard
-e.on [[]] !-> console.log "ANY EVENT"
-e.on [] !-> console.log "ANY EVENT"
+argon [0] "event: any event"
+argon [1] "event: top-level event"
+argon [\test 2 0] "event: any test-namespace event with at least two sub-components"
+argon [\test] "event: test"
+argon [\test \a \b] "event: any test.a.b event"
+argon [\test 2 \c] "event: any test.2.c event"
 
-# pattern match
-e.on [[] \test] !-> console.log "TEST EVENT IN ANY NAMESPACE"
-e.on [] \test !-> console.log "TEST EVENT IN ANY NAMESPACE"
-
-e.on [\test []] !-> console.log "ANY EVENT IN THE TEST TOP-LEVEL NAMESPACE"
-e.on \test [] !-> console.log "ANY EVENT IN THE TEST TOP-LEVEL NAMESPACE"
+console.log "--------------------------------------------------------------"
+argemit [\rofl]
+console.log "--------------------------------------------------------------"
+argemit [\test]
+console.log "--------------------------------------------------------------"
+argemit [\test \a]
+console.log "--------------------------------------------------------------"
+argemit [\test \a \b]
+console.log "--------------------------------------------------------------"
+argemit [\test \a \b \c]
+console.log "--------------------------------------------------------------"

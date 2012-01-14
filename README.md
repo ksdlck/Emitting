@@ -7,6 +7,23 @@ SYNOPSIS
 It's another event emitter.
 This one aims to support fewer features, and have a cleaner API.
 
+Events take the form of arrays with string and numerical specifiers.
+For a string, the element must be matched exactly.
+For a number, that number of components must be present, unless the number is 0, in which case any number of components may be matched.
+Multiple variable matches, e.g. `e.on [\a 0 \b 0 \c]` should be used with caution, as solving this match requires backtracking.
+
+    {Emitting} = require \emitting
+
+    e = new Emitting
+    e.on \a !-> console.log "event: \\a"
+    e.on 0 !-> console.log "event: any"
+    e.on [\a 1] console.log "event: any direct descendent of \\a"
+    e.on [\a 0] console.log "event: any descendent of \\a"
+
+    e.emit \a
+    e.emit [\a \b \c]
+    e.emit [\a \b]
+
 LICENSE
 -------
 
