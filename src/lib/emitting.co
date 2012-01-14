@@ -2,7 +2,7 @@ ex = exports? and exports or window
 
 class ex.Emitting
   on: (ev, proc)->
-    ev = [ev] if typeof ev is \string
+    ev = [ev] if typeof ev is \number or typeof ev is \string
     spec = @.@evs
     for c of ev
       switch typeof c
