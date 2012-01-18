@@ -1,3 +1,3 @@
 (function(){
-  module.exports = require('./lib/emitting.co');
+  module.exports = require('./lib/emitting');
 }).call(this);
