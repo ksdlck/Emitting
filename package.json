@@ -2,7 +2,7 @@
   "author": "Karel Sedláček <k@ksdlck.com> (http://ksdlck.com)",
   "name": "emitting",
   "description": "Another event emitter for Javascript and friends",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "homepage": "https://github.com/ksdlck/Emitting",
   "repository": {
     "type": "git",

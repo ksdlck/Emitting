@@ -31,26 +31,26 @@ class ex.Emitting
     dobj = null if spec.p.length is not 0
     delete dobj[dprop] if dobj
     @
-  _emit: !(ev, idx, spec, args)->
-    if ev.length - idx is 0
-      spec.p and for proc of spec.p
-        proc ...args
-    spec.s and (next = spec.s[ev[idx]]) and @_emit ev, idx + 1, next, args
-    spec.n and for num in spec.n
-      next = spec.n[num]
-      num = parseInt num
-      if num is 0
-        for i from idx to ev.length
-          @_emit ev, i, next, args
-      else if idx + num <= ev.length
-        @_emit ev, idx + num, next, args
-      else
-        break
   emit: (ev, ...args)->
-    # TODO roll the recursive emit process into a queue
     # TODO add a few short circuits to the variable matcher
     ev = [ev] if typeof ev is \string
-    @_emit ev, 0, @.@evs, args
+    q = [[ev, 0, @.@evs]]
+    while q.length is not 0
+      [ev, idx, spec] = q.pop ()
+      if ev.length - idx is 0
+        spec.p and for proc of spec.p
+          proc ...args
+      spec.s and (next = spec.s[ev[idx]]) and q.push [ev, idx + 1, next]
+      spec.n and for num in spec.n
+        next = spec.n[num]
+        num = parseInt num
+        if num is 0
+          for i from idx to ev.length
+            q.push [ev, i, next]
+        else if idx + num <= ev.length
+          q.push [ev, idx + num, next]
+        else
+          break
     @
   many: (ev, times, proc)->
     _proc = !~>
